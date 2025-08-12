@@ -20,7 +20,8 @@ class CartLine(Base):
     __table_args__ = {"schema": "cart"}
     cart_id = Column(String, primary_key=True)
     sku = Column(String, primary_key=True)
-    qty = Column(Integer, nullable=False)
+    qty = Column(Integer, nullable=False),
+    cupon = Column(String, nullable=True)
 
 Base.metadata.create_all(bind=engine)
 
@@ -28,6 +29,7 @@ class CartIn(BaseModel):
     cart_id: str
     sku: str
     qty: int
+    cupon: str
 
 app = FastAPI(title="Cart Service")
 
