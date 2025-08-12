@@ -1,0 +1,93 @@
+version: '3.9'
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports: ["5432:5432"]
+    volumes:
+      - pg/var/lib/postgresql/data
+
+  product_catalogueService:
+    build: ./product_catalogueService
+    environment:
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/ecom
+    depends_on: [db]
+    ports: ["8002:8002"]
+
+  cartService:
+    build: ./cartService
+    environment:
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/ecom
+      PRODUCT_URL: http://product_catalogueService:8002
+    depends_on: [db, product_catalogueService]
+    ports: ["8001:8001"]
+
+  orderService:
+    build: ./orderService
+    environment:
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/ecom
+      CART_URL: http://cartService:8001
+      PRODUCT_URL: http://product_catalogueService:8002
+      CUSTOMER_URL: http://customerService:8005
+    depends_on: [db, cartService, product_catalogueService, customerService]
+    ports: ["8003:8003"]
+
+  transactionService:
+    build: ./transactionService
+    environment:
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/ecom
+      ORDER_URL: http://orderService:8003
+    depends_on: [db, orderService]
+    ports: ["8004:8004"]
+
+  customerService:
+    build: ./customerService
+    environment:
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/ecom
+    depends_on: [db]
+    ports: ["8005:8005"]
+
+  paymentService:
+    build: ./paymentService
+    environment:
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/ecom
+      ORDER_URL: http://orderService:8003
+    depends_on: [db, orderService]
+    ports: ["8006:8006"]
+
+  searchService:
+    build: ./searchService
+    environment:
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/ecom
+    depends_on: [db]
+    ports: ["8007:8007"]
+
+  shippingService:
+    build: ./shippingService
+    environment:
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/ecom
+      ORDER_URL: http://orderService:8003
+    depends_on: [db, orderService]
+    ports: ["8008:8008"]
+
+  warehouseService:
+    build: ./warehouseService
+    environment:
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/ecom
+    depends_on: [db]
+    ports: ["8009:8009"]
+
+  fulfilmentService:
+    build: ./fulfilmentService
+    environment:
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/ecom
+      ORDER_URL: http://orderService:8003
+      WAREHOUSE_URL: http://warehouseService:8009
+      SHIPPING_URL: http://shippingService:8008
+    depends_on: [db, orderService, warehouseService, shippingService]
+    ports: ["8010:8010"]
+
+volumes:
+  pg
